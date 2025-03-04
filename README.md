@@ -6,17 +6,15 @@ omnetpp-toolbox is a custom image designed to be used with distrobox or toolbox.
 
 ## Using omnetpp-toolbox
 
-We use the default boxkit image as an example to show you how to create a distrobox/toolbox container using a custom image.
-
 If you use distrobox:
 
-    distrobox create -i ghcr.io/gbrsni/omnetpp-toolbox -n boxkit
-    distrobox enter boxkit
+    distrobox create -i ghcr.io/gbrsni/omnetpp-toolbox -n omnetpp-toolbox
+    distrobox enter omnetpp-toolbox
 
 If you use toolbox:
 
-    toolbox create -i ghcr.io/gbrsni/omnetpp-toolbox -c boxkit
-    toolbox enter boxkit
+    toolbox create -i ghcr.io/gbrsni/omnetpp-toolbox -c omnetpp-toolbox
+    toolbox enter omnetpp-toolbox
 
 Once you entered the container, start the IDE with
 
