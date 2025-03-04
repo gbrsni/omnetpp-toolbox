@@ -41,5 +41,5 @@ RUN python3 -m venv .venv --upgrade-deps --clear --prompt "omnetpp/.venv" && \
 RUN touch ide/error.log && chmod 666 ide/error.log && \
 	chown 1000:1000 -R /opt/omnetpp
 
-RUN echo ". /opt/omnetpp/setenv" >> /etc/zsh/zprofile
+RUN echo ". /opt/omnetpp/setenv" >> /etc/zsh/zshrc
 RUN echo "source /opt/omnetpp/setenv" >> /etc/bashrc
