@@ -27,12 +27,13 @@ SHELL ["/bin/bash", "-c"]
 
 RUN mv omnetpp-* omnetpp
 WORKDIR /opt/omnetpp
+RUN if [[ ! -e python/requirements.txt ]] ; then mv /requirements.txt python/requirements.txt ; else rm /requirements.txt ; fi
 ENV PATH=/opt/omnetpp/bin:$PATH
 # Needed since 6.0.3 refuses to build if it can't create desktop shortcuts
 RUN mkdir /usr/share/desktop-directories/
 RUN python3 -m venv .venv --upgrade-deps --clear --prompt "omnetpp/.venv" && \
 	source .venv/bin/activate && \
-	if [[ -e python/requirements.txt ]] ; then python3 -m pip install -r python/requirements.txt ; else python3 -m pip install -r /requirements.txt ; fi && \
+	python3 -m pip install -r python/requirements.txt && \
 	source ./setenv && \
 	./configure WITH_LIBXML=yes WITH_OSG=no WITH_OSGEARTH=no && \
 	make -j $(nproc) && \
