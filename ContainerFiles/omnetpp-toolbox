@@ -5,17 +5,6 @@ LABEL com.github.containers.toolbox="true" \
 	summary="OMNet++ with IDE for image-based Linux systems" \
 	maintainer="omnetppbox@gbrsni.dev"
 
-RUN export DEBIAN_FRONTEND=noninteractive && \
-	apt-get update -y && \
-	apt-get upgrade -y && \
-	apt-get install -y --no-install-recommends git wget curl ca-certificates \
-	build-essential pkg-config ccache clang lld gdb bison flex perl python3 \
-	python3-pip python3-venv python3-dev libxml2-dev zlib1g-dev doxygen \
-	graphviz xdg-utils libdw-dev \
-	qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libqt5svg5 \
-	libqt5opengl5-dev qtwayland5 libwebkit2gtk-4.1-0 \
-	&& apt-get clean
-
 ARG VERSION
 
 # Copy scripts and deps
