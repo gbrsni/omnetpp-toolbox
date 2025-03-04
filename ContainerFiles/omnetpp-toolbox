@@ -1,0 +1,49 @@
+FROM quay.io/toolbx/ubuntu-toolbox:24.04 AS omnetppbox
+
+LABEL com.github.containers.toolbox="true" \
+	usage="This image is meant to be used with the toolbox or distrobox commands" \
+	summary="OMNet++ with IDE for image-based Linux systems" \
+	maintainer="omnetppbox@gbrsni.dev"
+
+RUN export DEBIAN_FRONTEND=noninteractive && \
+	apt-get update -y && \
+	apt-get upgrade -y && \
+	apt-get install -y --no-install-recommends git wget curl ca-certificates \
+	build-essential pkg-config ccache clang lld gdb bison flex perl python3 \
+	python3-pip python3-venv python3-dev libxml2-dev zlib1g-dev doxygen \
+	graphviz xdg-utils libdw-dev \
+	qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libqt5svg5 \
+	libqt5opengl5-dev qtwayland5 libwebkit2gtk-4.1-0 \
+	&& apt-get clean
+
+ARG VERSION
+
+# Copy scripts and deps
+COPY ../packages/requirements.txt /
+
+WORKDIR /opt
+RUN wget https://github.com/omnetpp/omnetpp/releases/download/omnetpp-$VERSION/omnetpp-$VERSION-linux-x86_64.tgz \
+	-O omnetpp-core.tgz --progress=dot:giga && \
+	tar xf omnetpp-core.tgz && \
+	rm omnetpp-core.tgz
+
+SHELL ["/bin/bash", "-c"]
+
+RUN mv omnetpp-* omnetpp
+WORKDIR /opt/omnetpp
+ENV PATH=/opt/omnetpp/bin:$PATH
+# Needed since 6.0.3 refuses to build if it can't create desktop shortcuts
+RUN mkdir /usr/share/desktop-directories/
+RUN python3 -m venv .venv --upgrade-deps --clear --prompt "omnetpp/.venv" && \
+	source .venv/bin/activate && \
+	if [[ -e python/requirements.txt ]] ; then python3 -m pip install -r python/requirements.txt ; else python3 -m pip install -r /requirements.txt ; fi && \
+	source ./setenv && \
+	./configure WITH_LIBXML=yes WITH_OSG=no WITH_OSGEARTH=no && \
+	make -j $(nproc) && \
+	rm -r doc out test samples config.log config.status
+
+RUN touch ide/error.log && chmod 666 ide/error.log && \
+	chown 1000:1000 -R /opt/omnetpp
+
+RUN echo ". /opt/omnetpp/setenv" >> /etc/zsh/zprofile
+RUN echo "source /opt/omnetpp/setenv" >> /etc/bashrc
