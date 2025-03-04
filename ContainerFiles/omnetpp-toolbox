@@ -20,6 +20,13 @@ ARG VERSION
 
 # Copy scripts and deps
 COPY ../packages/requirements.txt /
+COPY ../scripts/omnetpp-toolbox.sh /
+COPY ../scripts/distrobox-shims.sh /
+COPY ../packages/omnetpp-toolbox.packages /
+
+# Run the setup scripts
+RUN chmod +x omnetpp-toolbox.sh distrobox-shims.sh && /omnetpp-toolbox.sh
+RUN rm /omnetpp-toolbox.sh /distrobox-shims.sh /omnetpp-toolbox.packages
 
 WORKDIR /opt
 RUN wget https://github.com/omnetpp/omnetpp/releases/download/omnetpp-$VERSION/omnetpp-$VERSION-linux-x86_64.tgz \
