@@ -59,7 +59,7 @@ jobs:
             VERSION=6.1.0
 
       - name: Build 6.0.3 Image
-        id: build_image_6.0.3
+        id: build_image_6_0_3
         uses: redhat-actions/buildah-build@v2
         with:
           containerfiles: |
@@ -98,13 +98,13 @@ jobs:
       - name: Push 6.0.3 To GHCR
         uses: redhat-actions/push-to-registry@v2
         if: github.event_name != 'pull_request'
-        id: push_6.0.3
+        id: push_6_0_3
         env:
           REGISTRY_USER: ${{ github.actor }}
           REGISTRY_PASSWORD: ${{ github.token }}
         with:
-          image: ${{ steps.build_image_6.0.3.outputs.image }}
-          tags: ${{ steps.build_image_6.0.3.outputs.tags }}
+          image: ${{ steps.build_image_6_0_3.outputs.image }}
+          tags: ${{ steps.build_image_6_0_3.outputs.tags }}
           registry: ${{ steps.registry_case.outputs.lowercase }}
           username: ${{ env.REGISTRY_USER }}
           password: ${{ env.REGISTRY_PASSWORD }}
@@ -134,11 +134,11 @@ jobs:
         run: |
           cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ steps.registry_case.outputs.lowercase }}/${{ matrix.containerfile }}@${TAGS}
         env:
-          TAGS: ${{ steps.push_6.0.3.outputs.digest }}
+          TAGS: ${{ steps.push_6_0_3.outputs.digest }}
           COSIGN_EXPERIMENTAL: false
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
 
       - name: Echo outputs
         run: |
           echo "${{ toJSON(steps.push_latest.outputs) }}"
-          echo "${{ toJSON(steps.push_6.0.3.outputs) }}"
+          echo "${{ toJSON(steps.push_6_0_3.outputs) }}"
