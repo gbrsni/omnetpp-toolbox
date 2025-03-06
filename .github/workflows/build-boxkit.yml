@@ -46,13 +46,26 @@ jobs:
 
       # Build image using Buildah action
       - name: Build Image
-        id: build_image
+        id: build_image_latest
         uses: redhat-actions/buildah-build@v2
         with:
           containerfiles: |
             ./ContainerFiles/${{ matrix.containerfile }}
           image: ${{ matrix.containerfile }}
           tags: ${{ env.IMAGE_TAGS }}
+          labels: ${{ steps.meta.outputs.labels }}
+          oci: false
+          build-args: |
+            VERSION=6.1.0
+
+      - name: Build Image
+        id: build_image_6_0_3
+        uses: redhat-actions/buildah-build@v2
+        with:
+          containerfiles: |
+            ./ContainerFiles/${{ matrix.containerfile }}
+          image: ${{ matrix.containerfile }}
+          tags: "6.0.3"
           labels: ${{ steps.meta.outputs.labels }}
           oci: false
           build-args: |
