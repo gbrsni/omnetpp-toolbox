@@ -45,7 +45,7 @@ jobs:
             io.artifacthub.package.readme-url=https://raw.githubusercontent.com/gbrsni/omnetpp-toolbox/main/README.md
 
       # Build image using Buildah action
-      - name: Build Image
+      - name: Build latest Image
         id: build_image_latest
         uses: redhat-actions/buildah-build@v2
         with:
@@ -58,7 +58,7 @@ jobs:
           build-args: |
             VERSION=6.1.0
 
-      - name: Build Image
+      - name: Build 6.0.3 Image
         id: build_image_6.0.3
         uses: redhat-actions/buildah-build@v2
         with:
@@ -80,7 +80,7 @@ jobs:
           string: ${{ env.IMAGE_REGISTRY }}
 
       # Push latest image to GHCR (Image Registry)
-      - name: Push To GHCR
+      - name: Push latest To GHCR
         uses: redhat-actions/push-to-registry@v2
         if: github.event_name != 'pull_request'
         id: push_latest
@@ -95,7 +95,7 @@ jobs:
           password: ${{ env.REGISTRY_PASSWORD }}
 
       # Push 6.0.3 to GHCR (Image Registry)
-      - name: Push To GHCR
+      - name: Push 6.0.3 To GHCR
         uses: redhat-actions/push-to-registry@v2
         if: github.event_name != 'pull_request'
         id: push_6.0.3
