@@ -14,6 +14,7 @@ on:
 
 env:
     IMAGE_TAGS: latest
+    LATEST_VER: "6.1.0"
     IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
 
 jobs:
@@ -45,14 +46,27 @@ jobs:
             io.artifacthub.package.readme-url=https://raw.githubusercontent.com/gbrsni/omnetpp-toolbox/main/README.md
 
       # Build image using Buildah action
-      - name: Build Image
-        id: build_image
+      - name: Build latest Image
+        id: build_image_latest
         uses: redhat-actions/buildah-build@v2
         with:
           containerfiles: |
             ./ContainerFiles/${{ matrix.containerfile }}
           image: ${{ matrix.containerfile }}
-          tags: ${{ env.IMAGE_TAGS }}
+          tags: ${{ env.IMAGE_TAGS }} ${{ env.LATEST_VER }}
+          labels: ${{ steps.meta.outputs.labels }}
+          oci: false
+          build-args: |
+            VERSION=${{ env.LATEST_VER }}
+
+      - name: Build 6.0.3 Image
+        id: build_image_6_0_3
+        uses: redhat-actions/buildah-build@v2
+        with:
+          containerfiles: |
+            ./ContainerFiles/${{ matrix.containerfile }}
+          image: ${{ matrix.containerfile }}
+          tags: "6.0.3"
           labels: ${{ steps.meta.outputs.labels }}
           oci: false
           build-args: |
@@ -66,17 +80,32 @@ jobs:
         with:
           string: ${{ env.IMAGE_REGISTRY }}
 
-      # Push the image to GHCR (Image Registry)
-      - name: Push To GHCR
+      # Push latest image to GHCR (Image Registry)
+      - name: Push latest To GHCR
         uses: redhat-actions/push-to-registry@v2
         if: github.event_name != 'pull_request'
-        id: push
+        id: push_latest
         env:
           REGISTRY_USER: ${{ github.actor }}
           REGISTRY_PASSWORD: ${{ github.token }}
         with:
-          image: ${{ steps.build_image.outputs.image }}
-          tags: ${{ steps.build_image.outputs.tags }}
+          image: ${{ steps.build_image_latest.outputs.image }}
+          tags: ${{ steps.build_image_latest.outputs.tags }}
+          registry: ${{ steps.registry_case.outputs.lowercase }}
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+
+      # Push 6.0.3 to GHCR (Image Registry)
+      - name: Push 6.0.3 To GHCR
+        uses: redhat-actions/push-to-registry@v2
+        if: github.event_name != 'pull_request'
+        id: push_6_0_3
+        env:
+          REGISTRY_USER: ${{ github.actor }}
+          REGISTRY_PASSWORD: ${{ github.token }}
+        with:
+          image: ${{ steps.build_image_6_0_3.outputs.image }}
+          tags: ${{ steps.build_image_6_0_3.outputs.tags }}
           registry: ${{ steps.registry_case.outputs.lowercase }}
           username: ${{ env.REGISTRY_USER }}
           password: ${{ env.REGISTRY_PASSWORD }}
@@ -92,15 +121,25 @@ jobs:
       - name: Install cosign
         uses: sigstore/cosign-installer@v3.8.1
 
-      - name: Sign container image
+      - name: Sign latest container image
         if: github.event_name != 'pull_request'
         run: |
           cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ steps.registry_case.outputs.lowercase }}/${{ matrix.containerfile }}@${TAGS}
         env:
-          TAGS: ${{ steps.push.outputs.digest }}
+          TAGS: ${{ steps.push_latest.outputs.digest }}
+          COSIGN_EXPERIMENTAL: false
+          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+
+      - name: Sign 6.0.3 container image
+        if: github.event_name != 'pull_request'
+        run: |
+          cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ steps.registry_case.outputs.lowercase }}/${{ matrix.containerfile }}@${TAGS}
+        env:
+          TAGS: ${{ steps.push_6_0_3.outputs.digest }}
           COSIGN_EXPERIMENTAL: false
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
 
       - name: Echo outputs
         run: |
-          echo "${{ toJSON(steps.push.outputs) }}"
+          echo "${{ toJSON(steps.push_latest.outputs) }}"
+          echo "${{ toJSON(steps.push_6_0_3.outputs) }}"
