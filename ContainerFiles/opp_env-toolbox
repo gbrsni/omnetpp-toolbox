@@ -1,0 +1,33 @@
+FROM quay.io/toolbx/ubuntu-toolbox:24.04 AS opp_env-toolbox
+
+LABEL com.github.containers.toolbox="true" \
+	usage="This image is meant to be used with the toolbox or distrobox commands" \
+	summary="opp_env container for image-based Linux systems" \
+	maintainer="omnetpp-toolbox@gbrsni.dev"
+
+# Copy scripts and deps
+COPY ../scripts/opp_env-toolbox.sh /
+COPY ../scripts/distrobox-shims.sh /
+COPY ../packages/opp_env-toolbox.packages /
+
+# Run the setup scripts
+RUN chmod +x opp_env-toolbox.sh distrobox-shims.sh && /opp_env-toolbox.sh
+RUN rm /opp_env-toolbox.sh /distrobox-shims.sh /opp_env-toolbox.packages
+
+# COPY ../scripts/opp_env-toolbox-nix.sh /
+# RUN chmod +x /opp_env-toolbox-nix.sh
+RUN mkdir /nix && chown 1000:1000 /nix
+USER 1000:1000
+ENV USER=user
+RUN curl -L https://nixos.org/nix/install -o /tmp/nixinstall && \
+	chmod +x /tmp/nixinstall && \
+	/tmp/nixinstall
+
+RUN mkdir /opt/venv
+WORKDIR /opt
+RUN python3 -m venv venv --upgrade-deps && \
+	source venv/bin/activate && \
+	python3 -m pip install opp-env
+
+RUN echo ". /opt/venv/bin/activate" >> /etc/zsh/zshrc
+RUN echo "source /opt/venv/bin/activate" >> /etc/bashrc
