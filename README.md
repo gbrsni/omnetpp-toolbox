@@ -2,7 +2,7 @@
 
 ## What is omnetpp-toolbox ?
 
-omnetpp-toolbox is a custom image designed to be used with distrobox or toolbox. It includes OMNet++ and its IDE. Currently only versions 6.0.3 and 6.1.0 (currently tagged as latest) of OMNet++ are being build.
+omnetpp-toolbox is a custom image designed to be used with distrobox or toolbox. It includes OMNet++ and its IDE. Currently only versions 6.0.3 and 6.2.0 (currently tagged as latest) of OMNet++ are being build.
 
 ## Using omnetpp-toolbox
 
